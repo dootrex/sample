@@ -1,18 +1,25 @@
-import Head from "next/head";
-import {Box, Grid, Paper, Typography} from "@material-ui/core";
+  import Head from "next/head";
+import {Grid} from "@material-ui/core";
 import {Title} from "../../common/components/Title";
 import {useToDoListSubscription} from "../../generated/graphql";
 import {useState} from "react";
 import {TodoForm} from "./components/TodoForm";
 import {Todo} from "./components/Todo";
+import {Pagination} from "@material-ui/lab"
 
+// for Pagination, I left the count at 10 as I was having trouble
+//finding the length of todos
 /**
  * List the todos.
  * @constructor
  */
 const ToDos = () => {
-  const limit = 5;
+  const limit = 4;
   const [offset, setOffset] = useState(0);
+  const handleChange = (event, value) => {
+    event.preventDefault()
+    setOffset((value-1)*limit)
+  };
 
   const {data} = useToDoListSubscription({
     variables: {
@@ -33,12 +40,15 @@ const ToDos = () => {
         <Grid item>
           <TodoForm />
         </Grid>
-        {data?.todo.map(todo => (
-          <Todo todo={todo} />
+        
+        {data?.todo
+        .map(todo => (
+         <Todo todo={todo} />
         ))}
+        <Pagination count={10} variant="outlined" color="primary" onChange={handleChange} />
+
         <Grid item>
           <hr/>
-          Pagination? Autoload more?
         </Grid>
       </Grid>
     </>

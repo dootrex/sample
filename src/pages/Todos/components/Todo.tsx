@@ -1,8 +1,16 @@
-import {Box, Grid, Paper, Typography} from "@material-ui/core";
-import {Todo as TodoType} from "../../../generated/graphql";
-import {memo} from "react";
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
+  Checkbox,
+  CircularProgress,
+} from "@material-ui/core";
+import { Todo as TodoType } from "../../../generated/graphql";
+import { memo, useState } from "react";
 import Link from "next/link";
-import {makeStyles} from "@material-ui/styles";
+import { useMarkTodoMutation } from "../../../generated/graphql";
+import { makeStyles } from "@material-ui/styles";
 
 interface TodoProps {
   todo: Pick<TodoType, "title" | "id" | "complete">;
@@ -10,17 +18,34 @@ interface TodoProps {
 
 const useStyles = makeStyles({
   link: {
-    cursor: 'pointer'
-  }
+    cursor: "pointer",
+  },
 });
 
 /**
  * Display an individual todo in the list.
  */
-export const Todo = memo(({
-  todo
-}: TodoProps) => {
+
+export const Todo = memo(({ todo }: TodoProps) => {
   const classes = useStyles();
+  const [sending, setSending] = useState(false);
+  async function toggle(event) {
+    setSending(true);
+    try {
+      await markTodo({
+        variables: {
+          id: todo.id,
+          complete: event.target.checked,
+        },
+      });
+      setTimeout(() => {
+        setSending(false);
+      }, 2000);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  const [markTodo] = useMarkTodoMutation();
 
   return (
     <Grid item key={todo.id}>
@@ -31,6 +56,15 @@ export const Todo = memo(({
           </Box>
         </Paper>
       </Link>
+      {sending ? (
+        <CircularProgress />
+      ) : (
+        <Checkbox
+          checked={todo.complete}
+          onChange={toggle}
+          inputProps={{ "aria-label": "primary checkbox" }}
+        />
+      )}
     </Grid>
-  )
+  );
 });
